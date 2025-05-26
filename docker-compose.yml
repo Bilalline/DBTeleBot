@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./session:/app/session:rw
+    env_file: .env
+    restart: unless-stopped
+    networks:
+      - bot_network
+
+volumes:
+  data:
+  logs:
+  session:
+
+networks:
+  bot_network:
+    driver: bridge 
