@@ -1,138 +1,156 @@
 # DBTeleBot
 
-Telegram бот для анализа сообщений из группы и сохранения их в MediaWiki с использованием внешнего сервера Ollama.
+Бот для Telegram, который анализирует сообщения в групповых чатах и создает страницы в MediaWiki на основе этих сообщений.
 
-## Описание
+## Возможности
 
-DBTeleBot - это асинхронный бот, который:
-- Подключается к Telegram от имени пользователя (не бота)
-- Анализирует сообщения из указанной группы с помощью внешнего сервера Ollama
-- Сохраняет проанализированные сообщения в MediaWiki
-- Ведет подробное логирование всех операций
+- Автоматический анализ сообщений в групповых чатах
+- Создание и обновление страниц в MediaWiki
+- Интеграция с Ollama для анализа текста
+- Поддержка различных типов контента (текст, изображения, документы)
+- Автоматическая категоризация контента
 
-## Компоненты
+## Требования
 
-### База данных (SQLite)
-- Асинхронная работа с SQLite
-- Хранение информации о сообщениях и их статусе обработки
-- Отслеживание обработанных сообщений
-
-### MediaWiki клиент
-- Асинхронное взаимодействие с MediaWiki API
-- Авторизация и управление страницами
-- Создание и обновление контента
-
-### Ollama клиент
-- Взаимодействие с внешним сервером Ollama
-- Анализ текста сообщений
-- Извлечение ключевой информации
-
-### Основной бот
-- Подключение к Telegram от имени пользователя
-- Обработка сообщений из группы
-- Управление всеми компонентами
-
-## Развертывание
-
-### Требования
-- Python 3.11+
+- Python 3.8+
 - Docker и Docker Compose
-- Доступ к внешнему серверу Ollama
-- Учетная запись Telegram пользователя
-- Доступ к MediaWiki
+- Telegram API credentials (api_id и api_hash)
+- MediaWiki установка
+- Ollama (для анализа текста)
 
-### Переменные окружения
+## Установка
+
+1. Клонируйте репозиторий:
+```bash
+git clone https://github.com/yourusername/DBtelebot.git
+cd DBtelebot
+```
+
+2. Создайте файл `.env` в корневой директории проекта:
 ```env
 # Telegram
 TELEGRAM_API_ID=your_api_id
 TELEGRAM_API_HASH=your_api_hash
-TELEGRAM_PHONE=your_phone
-ADMIN_ID=your_admin_id
-GROUP_ID=your_group_id
+TELEGRAM_PHONE=your_phone_number
+TELEGRAM_GROUP_ID=your_group_id
 
 # MediaWiki
-WIKI_USERNAME=your_username
-WIKI_PASSWORD=your_password
-WIKI_SITE=your_wiki_url
+MEDIAWIKI_URL=your_mediawiki_url
+MEDIAWIKI_USERNAME=your_username
+MEDIAWIKI_PASSWORD=your_password
 
 # Ollama
-OLLAMA_URL=http://your_ollama_server:11434
-OLLAMA_MODEL=your_model_name
+OLLAMA_BASE_URL=http://ollama:11434
+OLLAMA_MODEL=llama2
 ```
 
-### Подготовка к запуску
+3. Создайте сессию для Telegram:
+```bash
+python auth.py
+```
+Это создаст файл `session/session.session`, который будет использоваться для авторизации.
 
-1. Создайте файл `.env` с необходимыми переменными окружения
-
-2. Создайте сессию Telegram:
-   ```bash
-   # Установите зависимости
-   pip install -r requirements.txt
-   
-   # Запустите скрипт генерации сессии
-   python generate_session.py
-   ```
-   - Введите номер телефона
-   - Введите код подтверждения из Telegram
-   - Сессия будет сохранена в `session/session.session`
-
-3. Убедитесь, что внешний сервер Ollama доступен по указанному URL
-
-4. Проверьте доступность MediaWiki
-
-### Запуск с помощью Docker Compose
-
-1. Соберите и запустите контейнер:
-   ```bash
-   docker-compose up -d
-   ```
-
-2. Проверьте логи:
-   ```bash
-   docker-compose logs -f
-   ```
+4. Запустите бота с помощью Docker Compose:
+```bash
+docker-compose up -d
+```
 
 ## Структура проекта
+
 ```
-.
-├── app/
-│   ├── main.py           # Основной код бота
-│   ├── database.py       # Работа с базой данных
-│   ├── wiki_client.py    # Клиент MediaWiki
-│   └── ollama_client.py  # Клиент Ollama
-├── session/             # Директория для сессий Telegram
-├── logs/               # Директория для логов
-├── data/              # Директория для данных
-├── generate_session.py # Скрипт для создания сессии Telegram
-├── Dockerfile
+DBtelebot/
 ├── docker-compose.yml
+├── Dockerfile
 ├── requirements.txt
-└── README.md
+├── .env
+├── .env.example
+├── README.md
+├── auth.py              # Скрипт для создания сессии Telegram
+├── main.py             # Основной код бота
+├── config.py           # Конфигурация
+├── database.py         # Работа с базой данных
+├── ollama_client.py    # Клиент Ollama
+├── wiki_client.py      # Клиент MediaWiki
+├── session/            # Директория для сессий Telegram
+│   └── session.session
+└── logs/              # Директория для логов
+    └── bot.log
+```
+
+## Конфигурация
+
+### Telegram
+
+1. Получите `api_id` и `api_hash` на [my.telegram.org](https://my.telegram.org)
+2. Добавьте бота в группу и сделайте его администратором
+3. Получите ID группы (можно через [@getidsbot](https://t.me/getidsbot))
+
+### MediaWiki
+
+1. Создайте учетную запись на вашей MediaWiki
+2. Убедитесь, что у пользователя есть права на создание и редактирование страниц
+3. Настройте права доступа в MediaWiki для работы с API
+
+### Ollama
+
+1. Установите Ollama согласно [официальной документации](https://ollama.ai)
+2. Загрузите модель llama2:
+```bash
+ollama pull llama2
+```
+
+## Использование
+
+1. Запустите бота:
+```bash
+docker-compose up -d
+```
+
+2. Бот начнет анализировать сообщения в указанной группе
+3. Новые страницы будут создаваться в MediaWiki автоматически
+4. Проверяйте логи для отслеживания работы:
+```bash
+docker-compose logs -f
 ```
 
 ## Логирование
 
 Логи сохраняются в директории `logs/`:
-- `bot.log` - основной лог бота
-- Ротация логов происходит ежедневно
-- Хранение логов - 7 дней
+- `bot.log` - основные логи бота
+- `auth.log` - логи процесса авторизации
 
-## Известные проблемы и решения
+## Безопасность
 
-### Подключение к Telegram
-- Бот работает от имени пользователя, а не бота
-- Требуется валидная сессия Telegram в файле `session/session.session`
-- При отсутствии сессии используйте `generate_session.py`
+- Храните `.env` файл в безопасном месте
+- Не публикуйте `session.session` файл
+- Регулярно обновляйте зависимости
+- Используйте сложные пароли для MediaWiki
 
-### Подключение к Ollama
-- Используется внешний сервер Ollama
-- Убедитесь, что сервер доступен по указанному URL
-- Проверьте доступность указанной модели
+## Устранение неполадок
 
-### Подключение к супергруппе
-- Бот использует `PeerChannel` для работы с супергруппами
-- ID группы должен быть отрицательным числом
-- Убедитесь, что у пользователя есть доступ к группе
+### Проблемы с авторизацией
+
+1. Удалите файл `session/session.session`
+2. Перезапустите Telegram на телефоне
+3. Запустите `auth.py` заново
+4. Следуйте инструкциям в консоли
+
+### Проблемы с MediaWiki
+
+1. Проверьте права доступа пользователя
+2. Убедитесь, что API доступен
+3. Проверьте правильность URL и учетных данных
+
+### Проблемы с Ollama
+
+1. Проверьте доступность Ollama:
+```bash
+curl http://localhost:11434/api/version
+```
+2. Убедитесь, что модель загружена:
+```bash
+ollama list
+```
 
 ## Лицензия
 
